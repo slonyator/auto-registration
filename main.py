@@ -5,10 +5,10 @@ def main() -> None:
     print("Available providers:", PaymentProvider.list_available())
     print()
 
-    # Stripe provider
-    stripe = PaymentProvider.from_name("stripe", api_key="sk_test_123")
-    result = stripe.charge(amount=49.99, currency="USD", source="4242 4242 4242 4242")
-    print("Stripe result:", result)
+    # ApplePay provider
+    applepay = PaymentProvider.from_name("applepay", merchant_id="merchant.com.example")
+    result = applepay.charge(amount=49.99, currency="USD", source="apple_pay_token")
+    print("ApplePay result:", result)
     print()
 
     # PayPal provider
@@ -19,10 +19,10 @@ def main() -> None:
     print("PayPal result:", result)
     print()
 
-    # Square provider (with overridden defaults)
-    square = PaymentProvider.from_name("square", access_token="sq_live_token")
-    result = square.charge(amount=19.99, currency="USD", source="card_nonce_xyz")
-    print("Square result:", result)
+    # GooglePay provider (with overridden defaults)
+    googlepay = PaymentProvider.from_name("googlepay", gateway="stripe")
+    result = googlepay.charge(amount=19.99, currency="USD", source="google_pay_token")
+    print("GooglePay result:", result)
 
 
 if __name__ == "__main__":

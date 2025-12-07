@@ -5,11 +5,11 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
-    "basedpyright>=1.35.0",
 ]
 
 [dependency-groups]
 dev = [
+    "basedpyright>=1.35.0",
     "pyrefly>=0.44.2",
     "ruff>=0.14.8",
 ]
