@@ -1,8 +1,8 @@
 """
-payment_example.py
+payment.py
 
 Demonstrates auto-registration of providers using __init_subclass__.
-- Multiple payment providers (Stripe, PayPal) behind ONE interface
+- Multiple payment providers (Stripe, PayPal, Square) behind ONE interface
 - Providers auto-register themselves with their default configuration
 - No central "if/elif" factory needed
 """
@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Any, ClassVar, Dict, Tuple, Type
+from typing import Any, ClassVar
 
 
 @dataclass
@@ -31,13 +31,13 @@ class PaymentProvider(ABC):
             ...
     """
 
-    _registry: ClassVar[Dict[str, Tuple[Type["PaymentProvider"], Dict[str, Any]]]] = {}
+    _registry: ClassVar[dict[str, tuple[type[PaymentProvider], dict[str, Any]]]] = {}
 
     def __init_subclass__(
         cls,
         *,
         name: str | None = None,
-        default_config: Dict[str, Any] | None = None,
+        default_config: dict[str, Any] | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init_subclass__(**kwargs)
@@ -45,7 +45,7 @@ class PaymentProvider(ABC):
             cls._registry[name] = (cls, default_config or {})
 
     @classmethod
-    def from_name(cls, name: str, **kwargs: Any) -> "PaymentProvider":
+    def from_name(cls, name: str, **kwargs: Any) -> PaymentProvider:
         """Create a provider by name, merging default config with kwargs."""
         provider_cls, default_config = cls._registry[name]
         return provider_cls(**{**default_config, **kwargs})
@@ -57,11 +57,6 @@ class PaymentProvider(ABC):
     @abstractmethod
     def charge(self, amount: float, currency: str, source: str) -> ChargeResult:
         raise NotImplementedError
-
-
-# -------------------------------------------------------------------
-# Concrete providers - auto-register via class definition
-# -------------------------------------------------------------------
 
 
 @dataclass
@@ -103,34 +98,3 @@ class SquareProvider(
     def charge(self, amount: float, currency: str, source: str) -> ChargeResult:
         print(f"[Square] Charging {amount} {currency} using source={source}")
         return ChargeResult("square", "square_tx_789", amount, currency)
-
-
-# -------------------------------------------------------------------
-# Usage
-# -------------------------------------------------------------------
-
-
-def main() -> None:
-    print("Available providers:", PaymentProvider.list_available())
-
-    # Stripe with default config
-    stripe = PaymentProvider.from_name("stripe")
-    print(f"Created: {stripe!r}")
-    result = stripe.charge(49.99, "USD", "card_abc")
-    print(f"Result: {result}")
-
-    # PayPal with default config
-    paypal = PaymentProvider.from_name("paypal")
-    print(f"Created: {paypal!r}")
-    result = paypal.charge(29.99, "EUR", "paypal_user@email.com")
-    print(f"Result: {result}")
-
-    # Square with overridden defaults
-    square = PaymentProvider.from_name("square", access_token="sq_live_token")
-    print(f"Custom: {square!r}")
-    result = square.charge(19.99, "USD", "card_xyz")
-    print(f"Result: {result}")
-
-
-if __name__ == "__main__":
-    main()
